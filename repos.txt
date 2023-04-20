@@ -1,6 +1,6 @@
+databricks/dbt-databricks
 dbt-athena/dbt-athena
 Clickhouse/dbt-clickhouse
-databricks/dbt-databricks
 qiulin/dbt-doris
 jwills/dbt-duckdb
 tglunde/dbt-exasol
@@ -31,3 +31,5 @@ dremio/dbt-dremio
 fal-ai/fal
 databendcloud/dbt-databend
 inferlabs/dbt-infer
+getindata/dbt-flink-adapter
+tanyshak/dbt-upsolver

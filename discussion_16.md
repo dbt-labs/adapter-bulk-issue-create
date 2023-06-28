@@ -49,11 +49,42 @@ note:  :construction: means that this guide is not yet complete and "BtS" is sho
 
 #### Context
 
-see #6911
+original issue: https://github.com/dbt-labs/dbt-core/issues/6911
 
 #### How to support
 
-to be completed
+a more comprehensive guide is still forthcoming, but for now, please refer to the following PRs to learn more
+
+relevant PRs:
+- https://github.com/dbt-labs/dbt-core/pull/7334/
+- https://github.com/dbt-labs/dbt-redshift/pull/387
+- :construction: https://github.com/dbt-labs/dbt-snowflake/pull/659/
+- :construction: https://github.com/dbt-labs/dbt-bigquery/issues/672
+
+Of particular interested would are:
+1. the default (global) implementation for materialized views ([`core/dbt/include/global_project/macros/materializations/models/materialized_view/materialized_view.sql`](https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/include/global_project/macros/materializations/models/materialized_view/materialized_view.sql))
+2. [relation_configs/README.md](https://github.com/dbt-labs/dbt-core/pull/7239/files#diff-0f50b6142889a932591ab8dd774fac2a0dc075f2d7dfb8fbe50bb12fd02f1d64) which describes an extra config set related to MVs that likely will be embraced for all relation configuration in future minor versions
+3. how postgres tweaks/overrides specific macros corresponding to the default/global implementation ([`plugins/postgres/dbt/include/postgres/macros/materializations/materialized_view.sql`](https://github.com/dbt-labs/dbt-core/blob/main/plugins/postgres/dbt/include/postgres/macros/materializations/materialized_view.sql)))
+   1. `postgres__get_alter_materialized_view_as_sql`
+   2. `postgres__get_create_materialized_view_as_sql`
+   3. `postgres__get_replace_materialized_view_as_sql`
+   4. `postgres__get_materialized_view_configuration_changes`
+   5. `postgres__refresh_materialized_view`
+   6. `postgres__update_indexes_on_materialized_view`
+   7. `postgres__describe_materialized_view`
+4. how dbt-snowflake implements dynamic tables (see https://github.com/dbt-labs/dbt-snowflake/pull/659/)
+   1. [`materialization: dynamic_table`](https://github.com/dbt-labs/dbt-snowflake/blob/aa7bfd757de10d4beb0e55f729791d815107cfe8/dbt/include/snowflake/macros/materializations/dynamic_table/materialization.sql)
+   2. `snowflake__create_table_as` (add a `is_dynamic` conditional)
+   3. `snowflake__drop_relation_sql` (add a `is_dynamic` conditional)
+   4. `snowflake__alter_dynamic_table_sql`
+   5. `snowflake__create_dynamic_table_sql`
+   6. `snowflake__describe_dynamic_table`
+   7. `snowflake__drop_dynamic_table_sql`
+   8. `snowflake__refresh_dynamic_table_sql`
+   9. `snowflake__replace_dynamic_table_sql`
+   10. `snowflake__alter_dynamic_table_sql_with_on_configuration_change_option`
+   11. `dynamic_table_execute_no_op`
+   12. `dynamic_table_execute_build_sql`
 
 #### How to stub elegantly
 

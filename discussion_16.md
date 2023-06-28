@@ -43,7 +43,9 @@ Below gives the changes as of the latest beta release (as of June 26). The canon
 
 note:  :construction: means that this guide is not yet complete and "BtS" is short for Behind the Scenes, ie not a user-facing change
 
-### :construction: [FEATURE] Materialized Views
+<details>
+
+<summary>:construction: [FEATURE] Materialized Views</summary>
 
 #### Context
 
@@ -61,7 +63,11 @@ to be completed
 
 The default MV DDL statements will be sent to your engine, that will react accordingly - unless you already support MVs, in which case your implementation will superseed this one
 
-### [BtS] Drop support for Py 3.7
+</details>
+
+<details>
+
+<summary>[BtS] Drop support for Py 3.7</summary>
 
 #### Context <!-- markdownlint-disable-line MD024 -->
 
@@ -75,7 +81,11 @@ modify the `python_requires` specifier in your packages [`setup.py`](http://setu
 
 You'll likely get security bots flagging vulnerability issues, and users may encounter strange bugs/errors for which there will be no official fix from the Python Software Foundation
 
-### :construction: [FEATURE] `dbt clone`
+</details>
+
+<details>
+
+<summary> :construction: [FEATURE] `dbt clone`</summary>
 
 #### Context <!-- markdownlint-disable-line MD024 -->
 
@@ -89,7 +99,11 @@ tbc
 
 tbc
 
-### :construction: [BtS] revamp of `dbt debug`
+</details>
+
+<details>
+
+<summary>:construction: [BtS] revamp of `dbt debug`</summary>
 
 #### Context <!-- markdownlint-disable-line MD024 -->
 
@@ -103,7 +117,12 @@ tbc
 
 tbc
 
-### :construction: [BtS] new arg for `adapter.execute()`
+</details>
+
+<details>
+
+<summary>:construction: [BtS] new arg for `adapter.execute()`</summary>
+
 
 #### Context <!-- markdownlint-disable-line MD024 -->
 
@@ -117,8 +136,12 @@ tbc
 
 tbc
 
+</details>
 
-### :construction: [BtS] Adapter zone tests
+<details>
+
+<summary>:construction: [BtS] Adapter zone tests</summary>
+
 
 The first step before starting to the upgrade process is to sure to bump the version of `dbt-tests-adapter`
 
@@ -150,7 +173,4 @@ below is a non-exhaustive list of some of the newly introduced tests
 - `TestMixedNullCompare`
 - `TestNullCompare`
 
-
-
-
-
+</details>

@@ -12,8 +12,8 @@ The below table gives the milestones between up to and including the final relea
 | **state**          | **date** | **stage**   | **version** | **release**                                        | Diff to `1.5.0`                                                                     |
 | ------------------ | -------- | ----------- | ----------- | -------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | :white_check_mark: | Jun 23   | beta        | `1.6.0b6`   | [PyPI](https://pypi.org/project/dbt-core/1.6.0b6/) | [compare `1.6.0b6`](https://github.com/dbt-labs/dbt-core/compare/v1.5.0...v1.6.0b6) |
-| :wrench:           | Jul 13   | release cut | `1.6.0rc1`  |                                                    |                                                                                     |
-| :wrench:           | Jul 27   | final       | `1.6.0`     |                                                    |                                                                                     |
+| :construction:     | Jul 13   | release cut | `1.6.0rc1`  |                                                    |                                                                                     |
+| :construction:     | Jul 27   | final       | `1.6.0`     |                                                    |                                                                                     |
 
 ### prior maintainer upgrade versions
 
@@ -30,12 +30,6 @@ as an adapter maintainer, there's three options for new features in dbt Core:
 2. "stub" the feature as in add in code to let users know that the feature is "not supported"
 3. do nothing. if an adapter maintainer does nothing, then, if an end user tries to use that feature, the default implementation of dbt-core will be made which will result in SQL being generated and sent to the underlying data platform, which will likely make the platform throw an error.
 
-legend:
-
-- :construction: -- documentation to be completed
-- "BtS" -- Behind the Scenes, ie not a user-facing change
-
-
 ### Example diffs from dbt Labs-owned adapters
 
 Below gives the changes as of the latest beta release (as of June 26). The canonical way to check the diff of a minor version is `compare/v1.4.0...1.5.latest`, but the `1.5.latest` branch is not created until the `rc` is released.
@@ -44,6 +38,10 @@ Below gives the changes as of the latest beta release (as of June 26). The canon
 - <https://github.com/dbt-labs/dbt-bigquery/compare/v1.5.0...v1.6.0b4>
 - <https://github.com/dbt-labs/dbt-snowflake/compare/v1.5.0...v1.6.0b3>
 - <https://github.com/dbt-labs/dbt-spark/compare/v1.5.0...v1.6.0b3>
+
+### Areas to consider
+
+note:  :construction: means that this guide is not yet complete and "BtS" is short for Behind the Scenes, ie not a user-facing change
 
 ### :construction: [FEATURE] Materialized Views
 

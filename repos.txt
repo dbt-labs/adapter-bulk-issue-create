@@ -1,7 +1,6 @@
 databricks/dbt-databricks
 dbt-athena/dbt-athena
 Clickhouse/dbt-clickhouse
-qiulin/dbt-doris
 jwills/dbt-duckdb
 tglunde/dbt-exasol
 firebolt-db/dbt-firebolt
@@ -21,8 +20,8 @@ memsql/dbt-singlestore
 splitgraph/sgr
 dbt-msft/dbt-sqlserver
 codeforkjeff/dbt-sqlite
-StarRocks/dbt-starrocks
 microsoft/dbt-synapse
+microsoft/dbt-fabric
 Teradata/dbt-teradata
 pingcap/dbt-tidb
 starburstdata/dbt-trino

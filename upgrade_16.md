@@ -4,7 +4,7 @@ Minor version `v1.6` is targeted for final release on July 27, 2023. As a mainta
 
 ## How to upgrade
 
-https://github.com/dbt-labs/dbt-core/discussions/7213 is an open discussion with more detailed information. If you have questions, please put them there!
+https://github.com/dbt-labs/dbt-core/discussions/7958 is an open discussion with more detailed information. If you have questions, please put them there!
 
 The above linked guide has more information, but below is a high-level checklist of work that would enable a successful 1.6.0 release of your adapter:
 

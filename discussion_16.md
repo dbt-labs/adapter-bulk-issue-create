@@ -9,11 +9,12 @@ Please consider this a living document between now and the date of final release
 
 The below table gives the milestones between up to and including the final release. It will be updated with each subsequent release
 
-| **state**          | **date** | **stage**   | **version** | **release**                                        | Diff to `1.5.0`                                                                     |
-| ------------------ | -------- | ----------- | ----------- | -------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| :white_check_mark: | Jun 23   | beta        | `1.6.0b6`   | [PyPI](https://pypi.org/project/dbt-core/1.6.0b6/) | [compare `1.6.0b6`](https://github.com/dbt-labs/dbt-core/compare/v1.5.0...v1.6.0b6) |
-| :construction:     | Jul 13   | release cut | `1.6.0rc1`  |                                                    |                                                                                     |
-| :construction:     | Jul 27   | final       | `1.6.0`     |                                                    |                                                                                     |
+| **state**          | **date** | **stage**    | **version**    | **release**                                        | Diff to `1.5.0`                                                                     |
+| ------------------ | -------- | ------------ | -------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| :white_check_mark: | Jun 23   | beta         | `1.6.0b6`      | [PyPI](https://pypi.org/project/dbt-core/1.6.0b6/) | [compare `1.6.0b6`](https://github.com/dbt-labs/dbt-core/compare/v1.5.0...v1.6.0b6) |
+| :construction:     | Jul 13   | release cut  | `1.6.0rc1`     |                                                    |                                                                                     |
+| :construction:     | Jul 27   | final        | `1.6.0`        |                                                    |                                                                                     |
+| :construction:     | Jul 31   | in dbt Cloud | `1.6 (latest)` |                                                    |                                                                                     |
 
 ### prior maintainer upgrade versions
 

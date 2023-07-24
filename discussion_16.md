@@ -46,7 +46,7 @@ note:  :construction: means that this guide is not yet complete and "BtS" is sho
 
 <details>
 
-<summary>:construction: [FEATURE] Materialized Views</summary>
+<summary> [FEATURE] Materialized Views</summary>
 
 #### Context
 
@@ -117,15 +117,32 @@ You'll likely get security bots flagging vulnerability issues, and users may enc
 
 <details>
 
-<summary> :construction: [FEATURE] `dbt clone`</summary>
+<summary> [FEATURE] `dbt clone`</summary>
 
 #### Context <!-- markdownlint-disable-line MD024 -->
 
-tbc
+`dbt clone` ([docs page](https://docs.getdbt.com/reference/commands/clone))
 
 #### How to support <!-- markdownlint-disable-line MD024 -->
 
-tbc
+If your data platform supports the capability to clone, then there are two macros to override:
+
+- `can_clone_table()`, and
+- `create_or_replace_clone()`
+
+See below for the versions introduced to the BigQuery adapter via [dbt-bigquery#784](https://github.com/dbt-labs/dbt-bigquery/pull/784).
+
+```sql
+{% macro bigquery__can_clone_table() %}
+    {{ return(True) }}
+{% endmacro %}
+
+{% macro bigquery__create_or_replace_clone(this_relation, defer_relation) %}
+    create or replace
+      table {{ this_relation }}
+      clone {{ defer_relation }}
+{% endmacro %}
+```
 
 #### What if you do nothing <!-- markdownlint-disable-line MD024 -->
 
@@ -135,51 +152,58 @@ tbc
 
 <details>
 
-<summary>:construction: [BtS] revamp of `dbt debug`</summary>
+<summary>[BtS] revamp of `dbt debug`</summary>
 
 #### Context <!-- markdownlint-disable-line MD024 -->
 
-tbc
+See [dbt-core#7104](https://github.com/dbt-labs/dbt-core/issues/7104)
 
 #### How to support <!-- markdownlint-disable-line MD024 -->
 
-tbc
+There is a new Adapter method, `.debug_query()`, whose default value is `select 1 as id`. If this does not work on your supported data platform, you may override it.
+
+Also, an existing test was modified to test the new command-line flag functionality.
+
+`TestDebugPostgres` ([sauce](https://github.com/dbt-labs/dbt-core/blob/adc4dbc4d6a2e4423a0e5159acc0c2f5d94f060f/tests/adapter/dbt/tests/adapter/dbt_debug/test_dbt_debug.py#L49C7-L82))
 
 #### What if you do nothing <!-- markdownlint-disable-line MD024 -->
 
-tbc
+no end-user impact
 
 </details>
 
 <details>
 
-<summary>:construction: [BtS] new arg for `adapter.execute()`</summary>
+<summary> [BtS] new arg for `adapter.execute()`</summary>
 
 
 #### Context <!-- markdownlint-disable-line MD024 -->
 
-tbc
+To more fully support `dbt show`, we needed the ability to fetch only the rows that users specified via command-line flag. The behavior shipped in `1.5` would needlessly fetch the entire user-supplied query, then after return the specified number of rows.
+
+The new argument is called `limit`
+([source](https://github.com/dbt-labs/dbt-core/blob/ff5cb7ba51b4133f836d8d45ee8bb52f01ff4b4e/core/dbt/adapters/sql/connections.py#L143C72-L143C77))
+
+
 
 #### How to support <!-- markdownlint-disable-line MD024 -->
 
-tbc
+If your adapter over-rides SQLConnectionManager.execute(), you must include `limit` in it's function signature
 
 #### What if you do nothing <!-- markdownlint-disable-line MD024 -->
 
-tbc
+Things likely won't work for end users
 
 </details>
 
 <details>
 
-<summary>:construction: [BtS] Adapter zone tests</summary>
+<summary>[BtS] Adapter zone tests</summary>
 
 
 The first step before starting to the upgrade process is to sure to bump the version of `dbt-tests-adapter`
 
 ```md
-# latest release as of June 26
-dbt-tests-adapter==1.6.0b6
 # after release cut
 dbt-tests-adapter==1.6.0rc1
 # after final release
@@ -192,10 +216,11 @@ There are more tests in the adapter-zone test suite ([`tests/adapter/dbt/tests/a
 
 Within using the following command
 ```sh
-git diff --unified=0 -G "class Test.*" v1.5.0...v1.6.0b6 tests/adapter/dbt/tests/adapter | grep -E 'class Test.*'
+git diff --unified=0 -G "class Test.*" v1.5.0...v1.6.0rc1 tests/adapter/dbt/tests/adapter | grep -E 'class Test.*'
 ```
 
 below is a non-exhaustive list of some of the newly introduced tests
+
 - `TestIncrementalConstraintsRollback`
 - `TestTableContractSqlHeader`
 - `TestIncrementalContractSqlHeader`
@@ -204,5 +229,7 @@ below is a non-exhaustive list of some of the newly introduced tests
 - `TestEquals`
 - `TestMixedNullCompare`
 - `TestNullCompare`
+- `TestPostgresCloneNotPossible`
+- `TestValidateSqlMethod`
 
 </details>

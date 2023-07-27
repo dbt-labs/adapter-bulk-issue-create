@@ -190,6 +190,8 @@ The new argument is called `limit`
 
 If your adapter over-rides SQLConnectionManager.execute(), you must include `limit` in it's function signature
 
+Additionally, if your adapter overrides dbt-core's [`BaseAdapter.execute()`](https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/adapters/base/impl.py#L275-L290), you must also update that method to include the `limit` parameter.
+
 #### What if you do nothing <!-- markdownlint-disable-line MD024 -->
 
 Things likely won't work for end users

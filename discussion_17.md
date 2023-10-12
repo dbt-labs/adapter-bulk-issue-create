@@ -58,11 +58,11 @@ Traditionally, this adapter interface to call this out would be a single jinja m
 
 Our solution here is to define adapter/database capability in a top-level structure, that then "dispatches" to the corresponding macro/function. This way there's a stronger separation of concerns.
 
-A new static member variable on `BaseAdapter` called `_capabilities` with type [`CapabilityDict`](https://github.com/dbt-labs/dbt-core/blob/1baebb423c82a9c645e59b390fc3a69089623600/core/dbt/adapters/base/impl.py#L240-L242) can be overriden by adapter implementations. This new member variable is introduced to more easily flag to dbt-core whether or not a database supports a given dbt feature. [`dbt/adapters/capability.py`](https://github.com/dbt-labs/dbt-core/blob/1baebb423c82a9c645e59b390fc3a69089623600/core/dbt/adapters/capability.py) has great information on how it's structured.
+A new static member variable on `BaseAdapter` called `_capabilities` with type [`CapabilityDict`](https://github.com/dbt-labs/dbt-core/blob/1baebb423c82a9c645e59b390fc3a69089623600/core/dbt/adapters/base/impl.py#L240-L242) can be overriden by adapter implementations. This new member variable is introduced to more easily flag to dbt-core whether or not an adapter supports a given dbt feature as well as whether the database itself supports the feature. [`dbt/adapters/capability.py`](https://github.com/dbt-labs/dbt-core/blob/1baebb423c82a9c645e59b390fc3a69089623600/core/dbt/adapters/capability.py) has great information on how it's structured.
 
 From `1.7` forward, for a given relevant feature we'll define a new Capability within the Capability class, so that it may be defined within an adapter. The possible support states are defined within the [`Support` class](https://github.com/dbt-labs/dbt-core/blob/26a0ec61def58afc8d875b1f54a8262c4c9bd59b/core/dbt/adapters/capability.py#L17C1-L34C1), namely: "Unknown", "Unsupported", "NotImplemented", "Versioned", or "Full".
 
-If you as an adaper maintainer want to define that your dataplatform has does not support a new feature, `SomeNewFeature`, you'd define it as the below.
+If you as an adaper maintainer want to define that your data platform has does not support a new feature, `SomeNewFeature`, you'd define it as the below.
 
 ```py
 _capabilities: CapabilityDict = CapabilityDict(
@@ -216,10 +216,10 @@ Important! The following test cases must be added to the adapter to ensure compa
 
 #6914 #8653  <!-- markdownlint-disable-line MD018 -->
 
-There's a new config for tests, `store_failures_as` which can be `table` or `view`. It overlaps in "interesting" ways with an existing config, `store_failures`, which will be deprecated within the next two minor releases, i.e. either `1.8` or `1.9`
+There's a new config for tests, `store_failures_as` which can be `table`, `view`, or `ephemeral`. `table` and `view` will commonly be used to turn on the store failure feature. `ephemeral` is mostly used to turn off the store failures feature at a lower grain (e.g. model) after it has been turned on at a higher level (e.g. project). The new `store_failures_as` config, when set by the user, will override the existing config `store_failures`, which will be deprecated within the next two minor releases, i.e. either `1.8` or `1.9`. If the user does not set `store_failures_as`, `store_failures` will continue to behave as it has in the past until deprecation.
 
 > [!NOTE]
-Provided that your adapter doesn't have a custom `test` materialization overriding Core's default, there shouldn't be work required here beyond adding the below tests. But leaving this as standalone section rather than listing the available tests just in case.
+Provided that your adapter doesn't have a custom `test` materialization overriding Core's default, there shouldn't be work required here beyond adding the below tests. If the `test` materialization is overridden, then the change is to inspect `config.get("store_failures", "table")` and use that as the relation_type instead of a hard-coded "table". There could be other changes required, but that's the gist of it. I'll leave this as standalone section rather than listing the available tests just in case.
 
 #### Store Failures Tests
 

@@ -9,7 +9,7 @@ Please consider this a living document between now and the date of final release
 The below table gives the milestones between up to and including the final release. It will be updated with each subsequent release.
 
 - [x] #8261
-- [ ] #8262
+- [x] #8262
 - [ ] #8263
 - [ ] Release v1.7.0 to cloud October 30
 
@@ -55,7 +55,7 @@ Traditionally, this adapter interface to call this out would be a single jinja m
 
 Our solution here is to define adapter/database capability in a top-level structure, that then "dispatches" to the corresponding macro/function. This way there's a stronger separation of concerns.
 
-A new static member variable, [`CapabilityDict`](https://github.com/dbt-labs/dbt-core/blob/1baebb423c82a9c645e59b390fc3a69089623600/core/dbt/adapters/base/impl.py#L240-L242), is introduced to more easily flag to dbt-core whether or not a database supports a given dbt feature. [`dbt/adapters/capability.py`](https://github.com/dbt-labs/dbt-core/blob/1baebb423c82a9c645e59b390fc3a69089623600/core/dbt/adapters/capability.py) has great information on how it's structured.
+A new static member variable on `BaseAdapter` called `_capabilities` with type [`CapabilityDict`](https://github.com/dbt-labs/dbt-core/blob/1baebb423c82a9c645e59b390fc3a69089623600/core/dbt/adapters/base/impl.py#L240-L242) can be overriden by adapter implementations. This new member variable is introduced to more easily flag to dbt-core whether or not a database supports a given dbt feature. [`dbt/adapters/capability.py`](https://github.com/dbt-labs/dbt-core/blob/1baebb423c82a9c645e59b390fc3a69089623600/core/dbt/adapters/capability.py) has great information on how it's structured.
 
 From `1.7` forward, for a given relevant feature we'll define a new Capability within the Capability class, so that it may be defined within an adapter. The possible support states are defined within the [`Support` class](https://github.com/dbt-labs/dbt-core/blob/26a0ec61def58afc8d875b1f54a8262c4c9bd59b/core/dbt/adapters/capability.py#L17C1-L34C1), namely: "Unknown", "Unsupported", "NotImplemented", "Versioned", or "Full".
 

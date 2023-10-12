@@ -47,9 +47,67 @@ Excluding the work to consume our refactoring work for materialized views, there
 
 ## Changes
 
+### new capability support structure for adapters
+
+`dbt-core 1.7.0` improves performance of two existing features: source freshness and catalog metadata fetching (see below for more).  However, these improvements are only available contingent upon underlying data platform support.
+
+Traditionally, this adapter interface to call this out would be a single jinja macro or python method that may be overridden accordingly, but the end result is one macro that varies in what it does across adapters.
+
+Our solution here is to define adapter/database capability in a top-level structure, that then "dispatches" to the corresponding macro/function. This way there's a stronger separation of concerns.
+
+A new static member variable, [`CapabilityDict`](https://github.com/dbt-labs/dbt-core/blob/1baebb423c82a9c645e59b390fc3a69089623600/core/dbt/adapters/base/impl.py#L240-L242), is introduced to more easily flag to dbt-core whether or not a database supports a given dbt feature. [`dbt/adapters/capability.py`](https://github.com/dbt-labs/dbt-core/blob/1baebb423c82a9c645e59b390fc3a69089623600/core/dbt/adapters/capability.py) has great information on how it's structured.
+
+From `1.7` forward, for a given relevant feature we'll define a new Capability within the Capability class, so that it may be defined within an adapter. The possible support states are defined within the [`Support` class](https://github.com/dbt-labs/dbt-core/blob/26a0ec61def58afc8d875b1f54a8262c4c9bd59b/core/dbt/adapters/capability.py#L17C1-L34C1), namely: "Unknown", "Unsupported", "NotImplemented", "Versioned", or "Full".
+
+If you as an adaper maintainer want to define that your dataplatform has does not support a new feature, `SomeNewFeature`, you'd define it as the below.
+
+```py
+_capabilities: CapabilityDict = CapabilityDict(
+    {Capability.SomeNewFeature: CapabilitySupport(support=Support.Unsupported)}
+)
+```
+
+I'm very excited at the potential of this feature. I can imagine that much of an adapter might be abstracted into a structure like this, so that where previously a macro-override was required, now it's just another Dict entry.
+
+### metadata freshness checks
+
+#7012 #8704 #8795 <https://github.com/dbt-labs/dbt-snowflake/pull/796> <!-- markdownlint-disable-line MD018 -->
+
+#### Excerpt from #7102
+
+> Currently, source freshness can only be determined by querying a column in a table. When there are a lot of tables, even with a high number of threads, the amount of time it takes to compute source freshness might be unacceptably long - it's effectively just metadata collation after all.
+> However, lots of databases track table modification times (although don't always isolate DDL changes from DML changes) and expose this via a metadata route. For example, BigQuery has the well-known INFORMATION_SCHEMA tables which expose various metadata attributes.
+
+#### How to implement
+
+> [!NOTE]
+> This is the first of the two new features enabled via the new Capability dict.
+<!-- markdownlint-disable-line MD028 -->
+> [!WARNING]
+> if you're overriding `Adapter.calculate_freshness()` the type signature has changed so please update accordingly: [dbt-core#8795#discussion_r1355356418](https://github.com/dbt-labs/dbt-core/pull/8795#discussion_r1355356418)
+
+If your data platform has `Full` support for this new functionality, you will need to:
+
+1. add a new entry within the `_capabilities` Dict (see above section) to define. in this case, the feature is `TableLastModifiedMetadata`. See [dbt-snowflake#796#impl.py](https://github.com/dbt-labs/dbt-snowflake/pull/796/files#diff-3b8dfc96ca09cc82325269902a1353fa14e4503308502ba4c64f24e037734bdb) for the change that's needed.
+2. add a dispatched `get_relation_last_modified()` to define how to fetch this freshness metadata with a new macro. Note that `default__get_relation_last_modified()` is not implemented, so you must implement your own. See [`snowflake__get_relation_last_modified()`](https://github.com/dbt-labs/dbt-snowflake/blob/cf854b5c1c9b6b8e9b84e77c4f27b4ede3fc47df/dbt/include/snowflake/macros/metadata.sql). The function signature is similar to that of the below described `get_catalog_tables_sql()`, but returns a table with four columns:
+    1. `schema`
+    2. `identifier`,
+    3. `last_modified` the actual freshness metadata of the table
+    4. `snapshotted_at` current timestamp so we know when dbt checks for this
+
+#### Freshness Tests
+
+- `TestGetLastRelationModified`
+- `TestListRelationsWithoutCaching` has been deprecated and broken into the following:
+    - `TestListRelationsWithoutCachingSingle`
+    - `TestListRelationsWithoutCachingFull`
+
 ### Catalog fetch performance improvements
 
 #8521 #8648 [dbt-snowflake#758](https://github.com/dbt-labs/dbt-snowflake/pull/758) <!-- markdownlint-disable-line MD018 -->
+
+> [!NOTE]
+> This is the second of the two new features enabled via the new Capability dict.
 
 The performance of parsing projects and generating documentation has always become a bottleneck when one of the two conditions are met:
 
@@ -61,7 +119,7 @@ A change for `1.7` addresses the second scenario. The `get_catalog()` macro has 
 The adapter implementation to solve this problem is three-fold:
 
 1. Introduce a new macro, `get_catalog_relations()` which accepts a list of relations, rather than a list of schemas.
-2. A new Adapter class method, `.has_feature()`, to let dbt-core know if the adapter is capable of fetching a catalog from a list of relations. Not all databases support this! See [dbt-snowflake#758#impl.py](https://github.com/dbt-labs/dbt-snowflake/pull/758/files#diff-3b8dfc96ca09cc82325269902a1353fa14e4503308502ba4c64f24e037734bdb) for the change that's needed.
+2. A new entry within the `_capabilities` Dict (see above section) to define whether support for `SchemaMetadataByRelations` is `Full`, `Unsupported`, or `NotImplemented`. See [dbt-snowflake#758#impl.py](https://github.com/dbt-labs/dbt-snowflake/pull/758/files#diff-3b8dfc96ca09cc82325269902a1353fa14e4503308502ba4c64f24e037734bdb) for the change that's needed.
 3. Decompose the existing `get_catalog()` macro in order to minimize redundancy with body of `get_catalog_relations()`. This introduces some additional macros:
    1. `get_catalog_tables_sql()` copied straight from pre-existing `get_catalog()` everything you would normally fetch from `INFORMATION_SCHEMA.tables`
    2. `get_catalog_columns_sql()` copied straight from pre-existing `get_catalog()` everything you would normally fetch from `INFORMATION_SCHEMA.columns`
@@ -75,7 +133,7 @@ This macro is effectively an evolution of the old `get_catalog` `WHERE` clause, 
 
 Keep in mind that `relation` in this instance can be a standalone schema, not necessarily an object with a three-part identifier.
 
-```
+```pseudocode
 for relation provided list of relations
 1. if relation has an identifier and a schema
     1. then write WHERE clause to filter on both
@@ -157,7 +215,7 @@ Important! The following test cases must be added to the adapter to ensure compa
 
 There's a new config for tests, `store_failures_as` which can be `table` or `view`. It overlaps in "interesting" ways with an existing config, `store_failures`, which will be deprecated within the next two minor releases, i.e. either `1.8` or `1.9`
 
-> [!NOTE] 
+> [!NOTE]
 Provided that your adapter doesn't have a custom `test` materialization overriding Core's default, there shouldn't be work required here beyond adding the below tests. But leaving this as standalone section rather than listing the available tests just in case.
 
 #### Store Failures Tests
@@ -171,7 +229,7 @@ Provided that your adapter doesn't have a custom `test` materialization overridi
 
 ### Additional Tests
 
-> [!IMPORTANT] 
+> [!IMPORTANT]
 These are new tests introduced into the adapter zone that you should have in your adapter.
 
 | Tests                                                                                                                                                                                     | Issue | PR    | note                                       |

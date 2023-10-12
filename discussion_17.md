@@ -11,7 +11,7 @@ The below table gives the milestones between up to and including the final relea
 - [x] #8261
 - [ ] #8262
 - [ ] #8263
-- [ ] Release v1.7.0 to cloud October 16
+- [ ] Release v1.7.0 to cloud October 30
 
 <details><summary>
 
@@ -32,7 +32,7 @@ The below table gives the milestones between up to and including the final relea
 - #8830
 - <https://github.com/dbt-labs/dbt-snowflake/pull/800>
 
-### how to get latest changes before `1.7.0rc1` is released
+### How to get latest changes before `1.7.0rc1` is released
 
 Until the rc releases October 12, the best way to get this suite is via
 
@@ -43,36 +43,36 @@ pip install git+https://github.com/dbt-labs/dbt-core.git@main#egg=dbt-tests-adap
 
 ## TL;DR
 
-Excluding the work to consume our refactoring work for materialized views, there should be breaking changes. Please tell me if I'm wrong, but I believe that things should work by bumping package and dependency versions. I'd also recommend adding tests. Everything below is a nice-to-have and are first steps toward long-term stable interfaces we will develop in future versions.
+Excluding the work to consume our refactoring work for materialized views, there should be no breaking changes. Please tell me if I'm wrong, but I believe that things should work by bumping package and dependency versions. I recommend adding tests. Everything below is nice-to-have first steps toward long-term stable interfaces we will develop in future versions.
 
 ## Changes
 
-### catalog fetch performance improvements
+### Catalog fetch performance improvements
 
 #8521 #8648 [dbt-snowflake#758](https://github.com/dbt-labs/dbt-snowflake/pull/758) <!-- markdownlint-disable-line MD018 -->
 
-the performance of parsing projects and generating documenations has always become a bottleneck when one of the two conditions are met:
+The performance of parsing projects and generating documentation has always become a bottleneck when one of the two conditions are met:
 
-- projects grow very large (10,000+ models), or
-- defined within databases and schema that contain many pre-existing objects
+- Projects grow very large (10,000+ models), or
+- Projects are defined within databases and schemas that contain many pre-existing objects
 
-A change for `1.7` address the second scenario. The `get_catalog()` macro has always accepted a list of schemas as an argument. The output is all the relations that exist for the given list of schemas, regardless of whether or not dbt interacts with this object.
+A change for `1.7` addresses the second scenario. The `get_catalog()` macro has always accepted a list of schemas as an argument. All the relations that exist for the given list of schemas are output, regardless of whether or not dbt interacts with this object.
 
-the adapter implementation to our solution to this problem is three-fold:
+The adapter implementation to solve this problem is three-fold:
 
-1. introduce a new macro, `get_catalog_relations()` which accepts a list of relations, rather than a list of schemas.
-2. a new Adapter class method, `.has_feature()`, to let dbt-core know if the adapter is capable of fetching a catalog from a list of relations (not all databases support this!) See [dbt-snowflake#758#impl.py](https://github.com/dbt-labs/dbt-snowflake/pull/758/files#diff-3b8dfc96ca09cc82325269902a1353fa14e4503308502ba4c64f24e037734bdb) for the change that's needed.
-3. decompose the existing `get_catalog()` macro in order to minimize redundancy with body of `get_catalog_relations()`. This introduces some additional macros:
+1. Introduce a new macro, `get_catalog_relations()` which accepts a list of relations, rather than a list of schemas.
+2. A new Adapter class method, `.has_feature()`, to let dbt-core know if the adapter is capable of fetching a catalog from a list of relations. Not all databases support this! See [dbt-snowflake#758#impl.py](https://github.com/dbt-labs/dbt-snowflake/pull/758/files#diff-3b8dfc96ca09cc82325269902a1353fa14e4503308502ba4c64f24e037734bdb) for the change that's needed.
+3. Decompose the existing `get_catalog()` macro in order to minimize redundancy with body of `get_catalog_relations()`. This introduces some additional macros:
    1. `get_catalog_tables_sql()` copied straight from pre-existing `get_catalog()` everything you would normally fetch from `INFORMATION_SCHEMA.tables`
    2. `get_catalog_columns_sql()` copied straight from pre-existing `get_catalog()` everything you would normally fetch from `INFORMATION_SCHEMA.columns`
-   3. `get_catalog_schemas_where_clause_sql(schemas)` copied straight from pre-existing `get_catalog()`. basically using jinja to loop through provided schema list and make a big `WHERE schema in schema_list` ` ie joined with `OR`s
+   3. `get_catalog_schemas_where_clause_sql(schemas)` copied straight from pre-existing `get_catalog()`. This uses jinja to loop through the provided schema list and make a big `WHERE schema in schema_list` ` ie joined with `OR`s
    4. `get_catalog_relations_where_clause_sql(relations)` this is likely the only new thing
 
 #### `get_catalog_relations_where_clause_sql`
 
-This macro is effectively an evolution of the old `get_catalog` `WHERE` clause except now it has the following control flow.
+This macro is effectively an evolution of the old `get_catalog` `WHERE` clause, except now it has the following control flow.
 
-keep in mind that `relation` in this instance can be a standalone schema, not necessarily an object with a three-part identifier
+Keep in mind that `relation` in this instance can be a standalone schema, not necessarily an object with a three-part identifier.
 
 ```
 for relation provided list of relations
@@ -80,14 +80,14 @@ for relation provided list of relations
     1. then write WHERE clause to filter on both
 2. elif relation has a schema
     1. do what was normally done, filter where info_schema.table.table_schema == relation.schema 
-3. else throw exception. houston we do not have a something we can use
+3. else throw exception. Houston we do not have a something we can use.
 ```
 
-The result of the above is that dbt can, with "laser-precision" fetch metadata for ony the relations it needs, rather than the superset of "all the relations in all the schemas in which dbt has relations"
+The result of the above is that dbt can, with "laser-precision" fetch metadata for only the relations it needs, rather than the superset of "all the relations in all the schemas in which dbt has relations".
 
-#### catalog query structure
+#### Catalog Query Structure
 
-where the below mentioned `OBJECT_LIST` is `relations` or `schemas` depending on the macro.
+Where the below mentioned `OBJECT_LIST` is `relations` or `schemas` depending on the macro.
 
 ```sql
 {% set query %}
@@ -103,24 +103,24 @@ where the below mentioned `OBJECT_LIST` is `relations` or `schemas` depending on
 {%- endset -%}
 ```
 
-#### tests
+#### Tests
 
-`TestDocsGenerateOverride` in [`tests/functional/artifacts/test_override.py`](https://github.com/dbt-labs/dbt-core/blob/main/tests/functional/artifacts/test_override.py) was modified to cover this new behavior. If you are not already impelementing, I suggest that you should.
+`TestDocsGenerateOverride` in [`tests/functional/artifacts/test_override.py`](https://github.com/dbt-labs/dbt-core/blob/main/tests/functional/artifacts/test_override.py) was modified to cover this new behavior. If you are not already implementing this, I suggest that you should.
 
-### behavior of `dbt show`'s `--limit` flag
+### Behavior of `dbt show`'s `--limit` flag
 
-`dbt show` shipped in `1.5.0` with a `--limit` flag that, when provided, would limit the number of results that dbt would grab to display. It does not modify the original query, which means that even if you provide `--limit 5`, the command will not complete until the entire underying query is complete which can take a long time if the query's result set is large. This is especially evident becaues `dbt show` is now also used for dbt Cloud IDE's "preview" button.
+`dbt show` shipped in `1.5.0` with a `--limit` flag that, when provided, would limit the number of results that dbt would grab to display. It does not modify the original query, which means that even if you provide `--limit 5`, the command will not complete until the entire underlying query is complete which can take a long time if the query's result set is large. This is especially evident because `dbt show` is now also used for dbt Cloud IDE's "preview" button.
 
 The fix was #8641, which extends the implementation of the `--limit` flag to wrap the underlying query into a CTE and append a `LIMIT {limit}` clause.
 
-No change is needed if the adapter's data platform supports ANSI SQL `LIMIT` clauses. Any changes can be made in a dispatched version of `get_limit_subquery_sql()`, see [`default__get_limit_subquery()`](https://github.com/dbt-labs/dbt-core/blob/53845d0277be2b0ab347ac07b84bc86363157c54/core/dbt/include/global_project/macros/adapters/show.sql#L16-L22). This was merged into `1.7.0`, but also backported to `1.5` and `1.6`, so if a change is needed, it will likely also need to be backported and patched accordingly.
+No change is needed if the adapter's data platform supports ANSI SQL `LIMIT` clauses. Any changes can be made in a dispatched version of `get_limit_subquery_sql()`, see [`default__get_limit_subquery()`](https://github.com/dbt-labs/dbt-core/blob/53845d0277be2b0ab347ac07b84bc86363157c54/core/dbt/include/global_project/macros/adapters/show.sql#L16-L22). This was merged into `1.7.0`, but also back-ported to `1.5` and `1.6`, so if a change is needed, it will likely also need to be back-ported and patched accordingly.
 
-`dbt.tests.adapter.dbt_show.test_dbt_show` also contains new tests to ensure the new behavior functions properly:
+`dbt.tests.adapter.dbt_show.test_dbt_show` contains new tests to ensure the new behavior functions properly:
 
 - `BaseShowSqlHeader`
 - `BaseShowLimit`
 
-### migrate `date_spine()` macro from dbt-utils to Core
+### Migrate `date_spine()` Macro from dbt-utils to Core
 
 #8172 #8616  <!-- markdownlint-disable-line MD018 -->
 
@@ -138,24 +138,26 @@ The `default__` version of these macros is compatible with the adapters we curre
 - Starburst/Trino, which has [`dbt-trino-utils.date_spine`](https://github.com/starburstdata/dbt-trino-utils/blob/main/macros/dbt_utils/sql/date_spine.sql),
 - Fabric which has [`tsql-utils.date_spine`](https://github.com/dbt-msft/tsql-utils/blob/main/macros/dbt_utils/datetime/date_spine.sql)
 
-#### data spine tests
+#### Data Spine Tests
 
-Most important is that the following test cases be added to the adapter to ensure compatibiliy now and moving forward. See #8616 changes to `dbt/tests/adapter/utils/` directory for more info
+> [!IMPORTANT]
+Important! The following test cases must be added to the adapter to ensure compatibility now and moving forward. See #8616 changes to `dbt/tests/adapter/utils/` directory for more info.
 
 - `TestDateSpine`
 - `TestGenerateSeries`
 - `TestGetIntervalsBetween`
 - `TestGetPowersOfTwo`
 
-### storing test failures as view
+### Storing Test Failures as View
 
 #6914 #8653  <!-- markdownlint-disable-line MD018 -->
 
-there's a new config for tests, `store_failures_as` which can be `table` or `view`. it overlaps in "interesting" ways with an existing config, `should_store_failures`, which will be deprecated at some point in the future.
+There's a new config for tests, `store_failures_as` which can be `table` or `view`. It overlaps in "interesting" ways with an existing config, `should_store_failures`, which will be deprecated at some point in the future.
 
-Provided that your adapter doesn't have a custom `test` materialization overriding Core's default, the shouldn't be work required here only add the below tests. But leaving this as standalone section rather than listing the available tests just in case.
+> [!NOTE] 
+Provided that your adapter doesn't have a custom `test` materialization overriding Core's default, there shouldn't be work required here beyond adding the below tests. But leaving this as standalone section rather than listing the available tests just in case.
 
-#### store failures tests
+#### Store Failures Tests
 
 - `TestStoreTestFailuresAsInteractions`
 - `TestStoreTestFailuresAsProjectLevelOff`
@@ -164,18 +166,19 @@ Provided that your adapter doesn't have a custom `test` materialization overridi
 - `TestStoreTestFailuresAsProjectLevelEphemeral`
 - `TestStoreTestFailuresAsExceptions`
 
-### additional tests
+### Additional Tests
 
-here's new tests introduced into the adaper zone that you should have in your adapter.
+> [!IMPORTANT] 
+These are new tests introduced into the adapter zone that you should have in your adapter.
 
 | Tests                                                                                                                                                                                     | Issue | PR    | note                                       |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ----- | ------------------------------------------ |
 | `TestIncrementalForeignKeyConstraint`                                                                                                                                                     | #8022 | #8768 | ForeignKey Constraint bug with incremental |
 | [`TestCloneSameTargetAndState`](https://github.com/dbt-labs/dbt-core/blob/a3777496b5aad92796327f1452d3c4e6a5d23442/tests/adapter/dbt/tests/adapter/dbt_clone/test_dbt_clone.py#L222-L234) | #8160 | #8638 | `dbt clone`                                |
-| `SeedUniqueDelimiterTestBase` `TestSeedWithWrongDelimiter` `TestSeedWithEmptyDelimiter`                                                                                                   | #3990 | #7186 | custom-delimeter for seeds                 |
+| `SeedUniqueDelimiterTestBase` `TestSeedWithWrongDelimiter` `TestSeedWithEmptyDelimiter`                                                                                                   | #3990 | #7186 | custom-delimiter for seeds                 |
 
-### refactor of materialized views and dynamic tables
+### Materialized Views and Dynamic Tables Refactor
 
-there's a lot of great, exciting work to share here that will make all of our lives easier. however, we're still digesting the changes into something that we're ready to share.
+There's a lot of great, exciting work to share here that will make all of our lives easier. However, we're still digesting the changes into something that we're ready to share.
 
 Feel free to dive in and look around for yourself, but we'll be providing more guidance ideally before November. Our immediate focus is on Coalesce and the dbt-core `1.7.0` release.

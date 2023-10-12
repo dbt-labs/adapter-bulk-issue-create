@@ -4,4 +4,4 @@ Minor version `v1.7` is targeted for final release on Ocotber 26, 2023. As a mai
 
 ## How to upgrade
 
-https://github.com/dbt-labs/dbt-core/discussions/8307 is an open discussion with more detailed information. If you have questions, please put them there!
+https://github.com/dbt-labs/dbt-core/discussions/8307 is an open discussion with more detailed information. If you have questions, please put them there!  <!-- markdownlint-disable-line MD034 -->

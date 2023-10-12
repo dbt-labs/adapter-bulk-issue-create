@@ -65,7 +65,8 @@ The adapter implementation to solve this problem is three-fold:
 3. Decompose the existing `get_catalog()` macro in order to minimize redundancy with body of `get_catalog_relations()`. This introduces some additional macros:
    1. `get_catalog_tables_sql()` copied straight from pre-existing `get_catalog()` everything you would normally fetch from `INFORMATION_SCHEMA.tables`
    2. `get_catalog_columns_sql()` copied straight from pre-existing `get_catalog()` everything you would normally fetch from `INFORMATION_SCHEMA.columns`
-   3. `get_catalog_schemas_where_clause_sql(schemas)` copied straight from pre-existing `get_catalog()`. This uses jinja to loop through the provided schema list and make a big `WHERE schema in schema_list` ` ie joined with `OR`s
+   3. `get_catalog_schemas_where_clause_sql(schemas)` copied straight from pre-existing `get_catalog()`. This uses jinja to loop through the provided schema list and make a big `WHERE` clause of the form:
+       `WHERE info_schema.tables.table_schema IN "schema1" OR info_schema.tables.table_schema IN "schema2" [OR ...]`
    4. `get_catalog_relations_where_clause_sql(relations)` this is likely the only new thing
 
 #### `get_catalog_relations_where_clause_sql`
@@ -108,6 +109,8 @@ Where the below mentioned `OBJECT_LIST` is `relations` or `schemas` depending on
 `TestDocsGenerateOverride` in [`tests/functional/artifacts/test_override.py`](https://github.com/dbt-labs/dbt-core/blob/main/tests/functional/artifacts/test_override.py) was modified to cover this new behavior. If you are not already implementing this, I suggest that you should.
 
 ### Behavior of `dbt show`'s `--limit` flag
+
+#8496 #8641 <!-- markdownlint-disable-line MD018 -->
 
 `dbt show` shipped in `1.5.0` with a `--limit` flag that, when provided, would limit the number of results that dbt would grab to display. It does not modify the original query, which means that even if you provide `--limit 5`, the command will not complete until the entire underlying query is complete which can take a long time if the query's result set is large. This is especially evident because `dbt show` is now also used for dbt Cloud IDE's "preview" button.
 
@@ -152,7 +155,7 @@ Important! The following test cases must be added to the adapter to ensure compa
 
 #6914 #8653  <!-- markdownlint-disable-line MD018 -->
 
-There's a new config for tests, `store_failures_as` which can be `table` or `view`. It overlaps in "interesting" ways with an existing config, `should_store_failures`, which will be deprecated at some point in the future.
+There's a new config for tests, `store_failures_as` which can be `table` or `view`. It overlaps in "interesting" ways with an existing config, `store_failures`, which will be deprecated within the next two minor releases, i.e. either `1.8` or `1.9`
 
 > [!NOTE] 
 Provided that your adapter doesn't have a custom `test` materialization overriding Core's default, there shouldn't be work required here beyond adding the below tests. But leaving this as standalone section rather than listing the available tests just in case.

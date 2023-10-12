@@ -39,17 +39,10 @@ The below table gives the milestones between up to and including the final relea
 
 ### Example Diffs
 
-- #8830
-- <https://github.com/dbt-labs/dbt-snowflake/pull/800>
-
-### How to get latest changes before `1.7.0rc1` is released
-
-Until the rc releases October 12, the best way to get this suite is via
-
-```zsh
-pip install git+https://github.com/dbt-labs/dbt-core.git@main#egg=dbt-core&subdirectory=core
-pip install git+https://github.com/dbt-labs/dbt-core.git@main#egg=dbt-tests-adapter&subdirectory=tests/adapter
-```
+- <https://github.com/dbt-labs/dbt-redshift/compare/v1.6.0...v1.7.latest>
+- <https://github.com/dbt-labs/dbt-bigquery/compare/v1.6.0...v1.7.latest>
+- <https://github.com/dbt-labs/dbt-snowflake/compare/v1.6.0...v1.7.latest>
+- <https://github.com/dbt-labs/dbt-spark/compare/v1.6.0...v1.7.latest>
 
 ## TL;DR
 

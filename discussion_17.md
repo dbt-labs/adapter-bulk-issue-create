@@ -4,6 +4,16 @@ This discussion is for communicating to adapter maintainers the scope of work ne
 
 Please consider this a living document between now and the date of final release. If there's something missing, please comment below!
 
+<details><summary>
+
+### Loom video overview (12 min)
+
+</summary>
+
+<div>     <a href="https://www.loom.com/share/594dd3b0f85848baa2a3a998c218807c">       <p>Adapter Maintainers: Upgrading to dbt-core v1.7.0 - Watch Video</p>     </a>     <a href="https://www.loom.com/share/594dd3b0f85848baa2a3a998c218807c">       <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/594dd3b0f85848baa2a3a998c218807c-with-play.gif">     </a>   </div>
+
+</details>
+
 ### release timeline
 
 The below table gives the milestones between up to and including the final release. It will be updated with each subsequent release.

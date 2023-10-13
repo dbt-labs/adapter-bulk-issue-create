@@ -48,6 +48,12 @@ The below table gives the milestones between up to and including the final relea
 
 Excluding the work to consume our refactoring work for materialized views, there should be no breaking changes. Please tell me if I'm wrong, but I believe that things should work by bumping package and dependency versions. I recommend adding tests. Everything below is nice-to-have first steps toward long-term stable interfaces we will develop in future versions.
 
+## Breaking changes
+
+#8846 is a pre-regression in `1.7.0rc1` that will be remediated for the final release of `1.7.0`. The issue only impacts adapters that have overridden BaseAdapter.get_catalog() method. However, this does not affect adapters that have overridden the `get_catalog()`, macro. <!-- markdownlint-disable-line MD018 -->
+
+If you wish to temporarily unblock yourself, you may change your method's function signature to match that of the base class, but ultimately, this call will be wrapped in the capability flag so you only need update it if you plan on supporting the more precise get_catalog functionality.
+
 ## Changes
 
 ### new capability support structure for adapters

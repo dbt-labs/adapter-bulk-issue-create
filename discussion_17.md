@@ -243,7 +243,7 @@ These are new tests introduced into the adapter zone that you should have in you
 
 | Tests                                                                                                                                                                                     | Issue | PR    | note                                       |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ----- | ------------------------------------------ |
-| `TestIncrementalForeignKeyConstraint`                                                                                                                                                     | #8022 | #8768 | ForeignKey Constraint bug with incremental |
+| ~`TestIncrementalForeignKeyConstraint`~                                                                                                                                                     | #8022 | #8768 | not relevant to adapters, no need to implement |
 | [`TestCloneSameTargetAndState`](https://github.com/dbt-labs/dbt-core/blob/a3777496b5aad92796327f1452d3c4e6a5d23442/tests/adapter/dbt/tests/adapter/dbt_clone/test_dbt_clone.py#L222-L234) | #8160 | #8638 | `dbt clone`                                |
 | `SeedUniqueDelimiterTestBase` `TestSeedWithWrongDelimiter` `TestSeedWithEmptyDelimiter`                                                                                                   | #3990 | #7186 | custom-delimiter for seeds                 |
 

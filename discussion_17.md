@@ -10,7 +10,7 @@ Please consider this a living document between now and the date of final release
 
 </summary>
 
-<div>     <a href="https://www.loom.com/share/594dd3b0f85848baa2a3a998c218807c">       <p>Adapter Maintainers: Upgrading to dbt-core v1.7.0 - Watch Video</p>     </a>     <a href="https://www.loom.com/share/594dd3b0f85848baa2a3a998c218807c">       <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/594dd3b0f85848baa2a3a998c218807c-with-play.gif">     </a>   </div>
+<div>     <a href="https://www.loom.com/share/594dd3b0f85848baa2a3a998c218807c">       <p>Adapter Maintainers: Upgrading to dbt-core v1.7.0 - Watch Video</p>     </a>     <a href="https://www.loom.com/share/594dd3b0f85848baa2a3a998c218807c">       <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/594dd3b0f85848baa2a3a998c218807c-with-play.gif"alt="thumbnail of video overview">     </a>   </div>
 
 </details>
 
@@ -253,11 +253,13 @@ These are new tests introduced into the adapter zone that you should have in you
 Under construction
 
 Materialized views introduced a few pieces of purely new functionality within `dbt-core`. This resulted in some refactoring work that extended beyond materialized views to fold them into the mix. The highlights worth calling out:
+
 - We implemented change monitoring (`on_configuration_change`), which requires inspecting the materialized view at run time
 - We can no longer rely on the assumption that `!view == table`
 - Tables and views can often be swapped out for each other as they share functionality (atomic replace, rename, etc.); materialized views tend to have less functionality
 
 This limits the following functionality:
+
 - Backing up objects before replacing (due to renaming)
 - Soft deploying objects before validating they were created successfully (due to renaming)
 - Replacing objects of a different type (due to atomic replace)
@@ -268,7 +270,7 @@ At a high level, the approach that was taken establishes a relation-type agnosti
 
 While the file structure ultimately does not matter for jinja, we adopted the structure below to more easily navigate the files. Additionally, we're striving for a one-to-one relation between files and macros (effectively the opposite of `adapters.sql`).
 
-```
+```md
 macros
 |-- materializations
 |   |-- materialized_view.sql
@@ -301,7 +303,8 @@ macros
 |
 |__ ...
 ```
-These files all represent macros that need to be defined. Some of them likely already exist, like `create` for `table` and `view`. In that case, I would move them here for clarity. And `drop` may also exist, but likely in the form `drop {{ relation.type }} {{ relation }}`. Unfortunately that no longer works with materialized views. Instead of parsing `relation.type`, and to be consistent with breaking it out by type (e.g. `create'), we elected to go with a macro per type. If this really irks you, you can keep one `drop` macro and call it within each of the `drop` macros by type, but we need the `drop` macros by type since they are called within `dbt-core`.
+
+These files all represent macros that need to be defined. Some of them likely already exist, like `create` for `table` and `view`. In that case, I would move them here for clarity. And `drop` may also exist, but likely in the form `drop {{ relation.type }} {{ relation }}`. Unfortunately that no longer works with materialized views. Instead of parsing `relation.type`, and to be consistent with breaking it out by type (e.g. `create`'), we elected to go with a macro per type. If this really irks you, you can keep one `drop` macro and call it within each of the `drop` macros by type, but we need the `drop` macros by type since they are called within `dbt-core`.
 
 The standout file `materializations/materialized_view.sql` contains a macro that gets used while building the materialization in `dbt-core`. It determines the differences between the current and future states. Some folks (e.g. the author) just put this in `materialized_view/alter.sql` since there is a heavy correlation between the two; the output of one is the input of the other.
 
@@ -389,6 +392,7 @@ class MyAdapterMaterializedView:
         return relation_results.to_dict()     
 ```
 
-There's a lot of great, exciting work to share here that will make all of our lives easier. However, we're still digesting the changes into something that we're ready to share.
+Again, [dbt-redshift](https://github.com/dbt-labs/dbt-redshift/blob/main/dbt/adapters/redshift/relation_configs/materialized_view.py) and [dbt-bigquery](https://github.com/dbt-labs/dbt-bigquery/blob/main/dbt/adapters/bigquery/relation_configs/_materialized_view.py) are examples of how we implemented this object. This structure allows you to easily compare the current object (`from_relation_results`) to the future object (`from_model_node`). We also created this comparison as a python object by creating a method on `MyAdapterRelation`: [dbt-redshift](https://github.com/dbt-labs/dbt-redshift/blob/main/dbt/adapters/redshift/relation.py#L74-L109) and [dbt-bigquery](https://github.com/dbt-labs/dbt-bigquery/blob/c4893326ce6b628d27d8205fcad459c09dd3daa2/dbt/adapters/bigquery/relation.py#L71-L101). Then our `get_materialized_view_configuration_changes` macro simply passes the two versions of the relation into this macro and hands back the results.
 
-Feel free to dive in and look around for yourself, but we'll be providing more guidance ideally before November. Our immediate focus is on Coalesce and the dbt-core `1.7.0` release.
+> [!NOTE]
+If you elect to go with a jinja implementation of `get_materialized_view_configuration_changes`, make sure you hand back an object with a property `.has_changes == False` if there are no changes (versus an empty object, or empty list). This value gets checked in the materialization to see if there are changes to apply, or if a refresh should occur.

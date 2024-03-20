@@ -39,10 +39,10 @@ The below table gives the milestones between up to and including the final relea
 
 ### Example Diffs
 
-- <https://github.com/dbt-labs/dbt-redshift/compare/v1.7.0...1.8.0b1>
-- <https://github.com/dbt-labs/dbt-bigquery/compare/v1.7.0...1.8.0b1>
-- <https://github.com/dbt-labs/dbt-snowflake/compare/v1.7.0...1.8.0b1>
-- <https://github.com/dbt-labs/dbt-spark/compare/v1.7.0...1.8.0b1>
+- <https://github.com/dbt-labs/dbt-redshift/compare/v1.7.0...v1.8.0b1>
+- <https://github.com/dbt-labs/dbt-bigquery/compare/v1.7.0...v1.8.0b1>
+- <https://github.com/dbt-labs/dbt-snowflake/compare/v1.7.0...v1.8.0b1>
+- <https://github.com/dbt-labs/dbt-spark/compare/v1.7.0...v1.8.0b1>
 
 ## TL;DR
 

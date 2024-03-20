@@ -48,28 +48,23 @@ The below table gives the milestones between up to and including the final relea
 
 TBD
 
-## Breaking changes
 
-TBD
+## Decoupled Dependency on dbt-core
 
-## Changes
-
-### Decoupled Dependency on dbt-core
-
-#### Context
+### Context
 
 - [dbt Core Roadmap Update 11/23: Adapters & Artifacts](https://github.com/dbt-labs/dbt-core/blob/main/docs/roadmap/2023-11-dbt-tng.md#adapters--artifacts)
 - [dbt-core#9171](https://github.com/dbt-labs/dbt-core/discussions/9171)
 - [dbt-adapters#87](https://github.com/dbt-labs/dbt-adapters/discussions/87)
 
-##### Excerpt from #9171
+#### Excerpt from #9171
 
 > The goals of the work are to do the following:
 >
 > - Dramatically lower the effort required to maintain an adapter plugin for dbt-core
 > - Enable users to install the latest dbt-core version, even if their dbt-* adapter has not had a corresponding release
 
-#### How to implement
+### How to implement
 
 Everything you need to know is in [dbt-adapters#87](https://github.com/dbt-labs/dbt-adapters/discussions/87). If you have a question or concern, please ask it there.
 

@@ -247,7 +247,147 @@ These are new tests introduced into the adapter zone that you should have in you
 | [`TestCloneSameTargetAndState`](https://github.com/dbt-labs/dbt-core/blob/a3777496b5aad92796327f1452d3c4e6a5d23442/tests/adapter/dbt/tests/adapter/dbt_clone/test_dbt_clone.py#L222-L234) | #8160 | #8638 | `dbt clone`                                |
 | `SeedUniqueDelimiterTestBase` `TestSeedWithWrongDelimiter` `TestSeedWithEmptyDelimiter`                                                                                                   | #3990 | #7186 | custom-delimiter for seeds                 |
 
-### Materialized Views and Dynamic Tables Refactor
+### Materialized Views Refactor
+
+> [!NOTE]
+Under construction
+
+Materialized views introduced a few pieces of purely new functionality within `dbt-core`. This resulted in some refactoring work that extended beyond materialized views to fold them into the mix. The highlights worth calling out:
+- We implemented change monitoring (`on_configuration_change`), which requires inspecting the materialized view at run time
+- We can no longer rely on the assumption that `!view == table`
+- Tables and views can often be swapped out for each other as they share functionality (atomic replace, rename, etc.); materialized views tend to have less functionality
+
+This limits the following functionality:
+- Backing up objects before replacing (due to renaming)
+- Soft deploying objects before validating they were created successfully (due to renaming)
+- Replacing objects of a different type (due to atomic replace)
+
+At a high level, the approach that was taken establishes a relation-type agnostic operation layer that dispatches down to the relation-type specific layer, where possible. This allows for more granular control, though requires some copy paste. We determined the benefits outweigh the costs related with violating DRY principles. Let's discuss the jinja templates first.
+
+#### Jinja Updates
+
+While the file structure ultimately does not matter for jinja, we adopted the structure below to more easily navigate the files. Additionally, we're striving for a one-to-one relation between files and macros (effectively the opposite of `adapters.sql`).
+
+```
+macros
+|-- materializations
+|   |-- materialized_view.sql
+|   |__ ...
+|
+|-- relations
+|   |-- materialized_view
+|   |   |-- alter.sql
+|   |   |-- create.sql
+|   |   |-- describe.sql
+|   |   |-- drop.sql
+|   |   |-- refresh.sql
+|   |   |-- rename.sql
+|   |   |__ replace.sql
+|   |
+|   |-- table
+|   |   |-- create.sql
+|   |   |-- drop.sql
+|   |   |-- rename.sql
+|   |   |__ replace.sql
+|   |
+|   |__ view
+|       |-- create.sql
+|       |-- drop.sql
+|       |-- rename.sql
+|       |__ replace.sql
+|
+|-- utils
+|   |__ ...
+|
+|__ ...
+```
+These files all represent macros that need to be defined. Some of them likely already exist, like `create` for `table` and `view`. In that case, I would move them here for clarity. And `drop` may also exist, but likely in the form `drop {{ relation.type }} {{ relation }}`. Unfortunately that no longer works with materialized views. Instead of parsing `relation.type`, and to be consistent with breaking it out by type (e.g. `create'), we elected to go with a macro per type. If this really irks you, you can keep one `drop` macro and call it within each of the `drop` macros by type, but we need the `drop` macros by type since they are called within `dbt-core`.
+
+The standout file `materializations/materialized_view.sql` contains a macro that gets used while building the materialization in `dbt-core`. It determines the differences between the current and future states. Some folks (e.g. the author) just put this in `materialized_view/alter.sql` since there is a heavy correlation between the two; the output of one is the input of the other.
+
+In addition to creating these macros, you'll need to update things like `list_relations_without_caching`, `get_catalog`, etc. to ensure that they include this new object type.
+
+[dbt-redshift](https://github.com/dbt-labs/dbt-redshift/tree/main/dbt/include/redshift/macros/relations) and [dbt-bigquery](https://github.com/dbt-labs/dbt-bigquery/tree/main/dbt/include/bigquery/macros/relations) are good examples of how these macros were implemented. There are some differences because they are different platforms, but there are many similarities as well. This should give you a good feel for what's required and how to extend that to match your needs.
+
+#### Python Updates - Jinja Config
+
+There are a few configuration updates on your `MyAdapterRelation` that are needed to support the jinja updates. In particular, these are needed:
+
+```python
+    # map relation types to python relation objects
+    relation_configs = {
+        RelationType.MaterializedView.value: MyAdapterMaterializedView,
+    }
+    # list relations that can be renamed (e.g. `RENAME my_relation TO my_new_name;`)
+    renameable_relations = frozenset(
+        {
+            RelationType.View,
+            RelationType.Table,
+        }
+    )
+    # list relations that can be atomically replaced (e.g. `CREATE OR REPLACE my_relation..` versus `DROP` and `CREATE`)
+    replaceable_relations = frozenset(
+        {
+            RelationType.View,
+        }
+    )
+```
+
+#### Python Updates - Relation Models
+
+The approach we took for the jinja templates differs from that of tables and views. In the latter, the `config` object that's in the global jinja context gets parsed within the template. This embeds a lot of logic into the template. This is still a valid approach if you wish to go down this path. However, that will make change monitoring very difficult to implement. The alternative is to parse the `config` object into a python object. This allows for much easier comparison of current state and future state. However, if we're already parsing `config` for the future state, you might as well use that for the rest of the jinja macros as well. Ultimately, this is your choice, but we will talk about how we did this in the adapters dbt Labs maintains, which implements relations as a python object.
+
+I'll start by calling out the caveat that we wanted to implement base classes slowly, to avoid getting locked in functionality that we would like to change in the future. The base classes are sparse, which aligns with our goal of minimal (hopefully none) breaking changes. With that in mind, there is no reason that you need to inherit from the base relation object in `dbt-core`. If you'd like to build your own object, go for it. As mentioned above, it's possible to implement all (almost, I'll point that out later) of this within jinja, we just think that would be a terrible time. In general, you can think of the materialized view as a class that marshalls `config` or database metadata data into a dataclass. Here's the suggested structure of a materialized view python object:
+
+```python
+@dataclass(frozen=True, eq=True, unsafe_hash=True)
+class MyAdapterMaterializedView:
+    # configuration attributes that define the materialized view, e.g.
+    identifier: str
+    schema_name: str
+    database_name: str
+    something_about_refresh: str
+    maybe_a_cluster_config: MyAdapterClusterConfig
+
+    # some useful calculated properties
+    @property
+    def path(self) -> str:
+        return ".".join([self.database_name, self.schema_name, self.identifier])
+
+    # parsing methods
+    @classmethod
+    def from_dict(cls, config_dict: Dict[str, Any]) -> Self:
+        # handle nested objects here, like `self.maybe_a_cluster_config`
+        return cls(**config_dict)
+
+    @classmethod
+    def from_model_node(cls, model_node: ModelNode) -> Self:
+        return cls.from_dict(cls.parse_model_node(model_node))
+
+    @classmethod
+    def parse_model_node(cls, model_node: ModelNode) -> Dict[str, Any]:
+        # parse the global jinja context object `config.model` into the `dict` version of this class
+        # handle nested objects here, like `self.maybe_a_cluster_config`
+        my_config = {
+            "identifier": model_node.get("identifier"),
+            "schema_name": model_node.get("schema"),
+            "database_name": model_node.get("database"),
+            "something_about_refresh": model_node.config.extras.get("refresh"),
+        }
+        if cluster := model_node.config.extras.get("refresh"):
+            my_config.update({"maybe_a_cluster_config": MyAdapterClusterConfig.parse_model_node(cluster)})
+        return my_config
+
+    @classmethod
+    def from_relation_results(cls, relation_results: RelationResults) -> Self:
+        return cls.from_dict(cls.parse_relation_results(relation_results))
+
+    @classmethod
+    def parse_relation_results(cls, relation_results: RelationResults) -> Dict[str, Any]:
+        # parse the results of `relations/materialized_view/describe.sql` into the `dict` version of this class
+        # handle nested objects here, like `self.maybe_a_cluster_config`
+        return relation_results.to_dict()     
+```
 
 There's a lot of great, exciting work to share here that will make all of our lives easier. However, we're still digesting the changes into something that we're ready to share.
 

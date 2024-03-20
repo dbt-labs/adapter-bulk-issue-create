@@ -68,9 +68,34 @@ TBD
 
 Everything you need to know is in [dbt-adapters#87](https://github.com/dbt-labs/dbt-adapters/discussions/87). If you have a question or concern, please ask it there.
 
-### Unit Testing
+## Unit Testing
 
-TBD
+Unit testing is a long-awaited feature that is finally coming to dbt. It is a powerful feature that will allow users to test their models in isolation from the rest of their project. This should not require a great deal of work on the part of the adapter maintainer, but, more importantly, how dbt is used changes, so it's important that we have test coverage for these new scenarios.s
+
+### support for `--empty` flag to enable "dry run" mode
+
+- [dbt-core#8980](https://github.com/dbt-labs/dbt-core/issues/8980): original issue
+- [dbt-core#8971](https://github.com/dbt-labs/dbt-core/pull/8971): Core PR
+- [dbt-redshift#666](https://github.com/dbt-labs/dbt-redshift/issues/666): Example implementation
+
+#### How to implement `--empty` support
+
+[dbt-core#8971](https://github.com/dbt-labs/dbt-core/pull/8971) added a new BaseRelation method: [`render_limited()`](https://github.com/dbt-labs/dbt-core/blob/7967be7bb373a3c737196bc0ebbe31ef6f4ed354/core/dbt/adapters/base/relation.py#L198-L205). Effectively, this method will wrap a model's `SELECT` statement into a subquery
+
+```sql
+(select * from {rendered} limit {self.limit}) _dbt_limit_subq
+
+-- if limit is 0 (`where false` for cost saving)
+(select * from {rendered} where false limit 0) _dbt_limit_subq
+```
+
+If your data platform supports `LIMIT` clauses, you have no work to do. However, some SQL dialects (e.g. T-SQL) do not support `LIMIT` clauses. In this case, you will need to implement `render_limited()` for your adapter.
+
+#### `--empty` Tests
+
+`dbt.tests.adapter.empty.test_empty.BaseTestEmpty`
+
+### macros `CAST` and `SAFE_CAST` support
 
 #### Tests
 

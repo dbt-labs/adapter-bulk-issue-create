@@ -18,7 +18,9 @@ TBD
 
 The below table gives the milestones between up to and including the final release. It will be updated with each subsequent release.
 
-TBD
+- `1.8.0b2` - second beta - 2024-04-03
+- `1.8.0rc1` - release cut - 2024-05-02
+- `1.8.0` - final release (ie GA) - 2024-05-09
 
 <details><summary>
 

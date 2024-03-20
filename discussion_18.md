@@ -106,7 +106,7 @@ dbt does a vast amount of type casting behind the scenes such as:
 
 In the case of unit testing, we needed to extend further the `yaml`<>`python` casting to allow for more specific definition of mock data.
 
-theoretically this should be a no-op for most adapters, but it's worth checking to make sure that the `CAST` and `SAFE_CAST` macros are supported in your adapter.
+theoretically this should be a no-op for most adapters, but it's worth checking to make sure that the `CAST` and `SAFE_CAST` macros are supported in your adapter. For example, dbt-spark now has a `safe_cast` that it did not before ([dbt-spark#files](https://github.com/dbt-labs/dbt-spark/pull/976/files)).
 
 #### Tests
 

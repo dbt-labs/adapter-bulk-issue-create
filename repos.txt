@@ -25,7 +25,6 @@ dbeatty10/dbt-mysql
 chop-analytics/dbt-netezza
 rockset/dbt-rockset
 memsql/dbt-singlestore
-splitgraph/sgr
 pingcap/dbt-tidb
 fal-ai/fal
 databendcloud/dbt-databend

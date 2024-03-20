@@ -97,6 +97,16 @@ If your data platform supports `LIMIT` clauses, you have no work to do. However,
 
 ### macros `CAST` and `SAFE_CAST` support
 
+dbt does a vast amount of type casting behind the scenes such as:
+
+- data warehouse data types <> Python
+- `agate` (our current csv reader) <> Python
+- `YAML` <> Python
+
+In the case of unit testing, we needed to extend further the `yaml`<>`python` casting to allow for more specific definition of mock data.
+
+theoretically this should be a no-op for most adapters, but it's worth checking to make sure that the `CAST` and `SAFE_CAST` macros are supported in your adapter.
+
 #### Tests
 
 For unit testing, there are a handful (3) of functional tests worth implementing as an adapter to ensure both baseline functionality and expected behaviour when mocking inputs with various types:

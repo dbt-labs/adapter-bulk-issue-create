@@ -2,8 +2,8 @@
 
 # list of repos stored in a file
 repos_file="repos.txt"
-issue_title="upgrade to support dbt-core v1.7.0"
-issue_body_file="upgrade_17.md"
+issue_title="upgrade to support dbt-core v1.8.0"
+issue_body_file="upgrade_18.md"
 
 # create an array from the line-delimited list of repos
 repos=($(cat $repos_file))

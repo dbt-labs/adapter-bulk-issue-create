@@ -47,8 +47,10 @@ The below table gives the milestones between up to and including the final relea
 
 ## TL;DR
 
-TBD
+This upgrade is a big deal, and should be the last time in a while that dbt Labs asks maintainers for this amount of work. There's two logical pieces of work here, that, in theory, aren't especially complex:
 
+- decoupling dependency on dbt-core
+- supporting the new unit testing feature for end users
 
 ## Decoupled Dependency on dbt-core
 
@@ -110,7 +112,7 @@ theoretically this should be a no-op for most adapters, but it's worth checking 
 
 #### Tests within `dbt.tests.adapter.unit_testing`
 
-For unit testing, there are a handful (3) of functional tests worth implementing as an adapter to ensure both baseline functionality and expected behaviour when mocking inputs with various types:
+For unit testing, there are a handful (3) of functional tests worth implementing as an adapter to ensure both baseline functionality and expected behavior when mocking inputs with various types:
 
 ##### `test_types.BaseUnitTestingTypes`
 
@@ -123,7 +125,7 @@ For unit testing, there are a handful (3) of functional tests worth implementing
 
 ##### `test_case_insensitivity.BaseUnitTestCaseInsensivity`
 
-- this is more of a baseline behaviour test, that ensures input fixtures can specify column names in a case-insensitive manner ([base implementation](https://github.com/dbt-labs/dbt-adapters/blob/main/dbt-tests-adapter/dbt/tests/adapter/unit_testing/test_case_insensitivity.py))
+- this is more of a baseline behavior test, that ensures input fixtures can specify column names in a case-insensitive manner ([base implementation](https://github.com/dbt-labs/dbt-adapters/blob/main/dbt-tests-adapter/dbt/tests/adapter/unit_testing/test_case_insensitivity.py))
 - should be handled by the default implementation and not require anything beyond a passthrough implementation ([example](https://github.com/dbt-labs/dbt-bigquery/pull/1031/files#diff-fa16d6a4b96751c43394815126f09d409c56cc89baff1a089af16c15e55118baR59))
     - unless they are overwriting the unit materialization or [`get_fixture_sql`](https://github.com/dbt-labs/dbt-adapters/blob/35bd3629c390cf87a0e52d999679cc5e33f36c8f/dbt/include/global_project/macros/unit_test_sql/get_fixture_sql.sql#L1), which I'd advise against as those provide the main adapter framework/entrypoints of the unit testing functionality and our 1p implementations have not had to.
 

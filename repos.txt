@@ -18,7 +18,6 @@ markporoshin/dbt-greenplum
 cloudera/dbt-hive
 aurany/dbt-ibmdb2
 cloudera/dbt-impala
-iomete/dbt-iomete
 mindsdb/dbt-mindsdb
 dbeatty10/dbt-mysql
 chop-analytics/dbt-netezza

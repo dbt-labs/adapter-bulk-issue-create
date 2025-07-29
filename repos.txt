@@ -3,7 +3,6 @@ dbt-athena/dbt-athena
 starburstdata/dbt-trino
 Clickhouse/dbt-clickhouse
 duckdb/dbt-duckdb
-MaterializeInc/materialize
 oracle/dbt-oracle
 codeforkjeff/dbt-sqlite
 microsoft/dbt-synapse
@@ -26,7 +25,6 @@ chop-analytics/dbt-netezza
 rockset/dbt-rockset
 memsql/dbt-singlestore
 pingcap/dbt-tidb
-fal-ai/fal
 databendcloud/dbt-databend
 inferlabs/dbt-infer
 getindata/dbt-flink-adapter
